@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+          <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <link rel="stylesheet" href="css/font-awesome.min.css" />
+        <link rel="stylesheet" href="css/mio.css" />
+        <link rel="stylesheet" href="css/jquery.mobile.min.css" />
+        <link rel="stylesheet" href="nativeDroid2/vendor/waves/waves.min.css" />
+        <link rel="stylesheet" href="nativeDroid2/css/nativedroid2.css" />
+        <script src="js/jquery.min.js"></script>
+        <script src="js/jquery-ui.min.js"></script>
+        <script src="js/jquery.mobile.min.js"></script>
+        <script src="nativeDroid2/vendor/waves/waves.min.js"></script>
+        <script src="nativeDroid2/js/nativedroid2.js"></script>
+        <script src="nativeDroid2/nd2settings.js"></script>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <link rel="stylesheet" href="nativeDroid2/vendor/wow/animate.css" />
+        <link rel="stylesheet" href="nativeDroid2/css/material-design-iconic-font.min.css" />
+        <script type="text/javascript" src="nativeDroid2/vendor/wow/wow.min.js"></script>
+        <link rel="stylesheet" href="nativeDroid2/css/nativedroid2.color.indigo.css" />
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB_EQ6fbpra89p7-b93-sUBhSbxsuN0PtI"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(validar_usuario);
+                } else {
+                    alert("Error en la conexión");
+                }
+
+
+            });
+        </script>
+
+        <title>Localizador de Clientes</title>
+    </head>
+    <body>
+        
+       
+
+<div data-role="header" data-position="fixed">
+ 				<a href="#bottomsheetblock" class="ui-btn ui-btn-right wow fadeIn"><i class="zmdi zmdi-more-vert"></i></a>
+  				<a href="#leftpanel" class="ui-btn ui-btn-left"><i class="zmdi zmdi-menu"></i></a>
+  				
+  				<h1>Toasts</h1>
+  			
+  			</div>
+
+
+
+
+
+    <div role="main" class="ui-content wow fadeIn" data-inset="false" data-wow-delay="0.2s">
+
+        <div id ="mapa" >
+
+        </div>
+
+
+    </div>
+
+
+
+    <div data-role="footer" data-position="fixed">
+
+        <div class="row center-xs">
+            <div class="col-xs-4">
+                <div class="box">
+                    <label for="flip4b">
+                    </label>
+                    <a href="#" class="ui-btn ui-btn-icon-left"><i class='zmdi zmdi-long-arrow-return'></i> Atras</a>
+                </div>				
+            </div>
+            <div class="col-xs-4">
+                <div class="box">
+                    <label for="clientes">Ver Clientes:</label>
+                    <select name="clientes" id="clientes" data-role="flipswitch">
+                        <option value="off">No</option>
+                        <option value="on">Si</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="box">
+                    <label for="territorio">Ver Territorio:</label>
+                    <select name="territorio" id="territorio" data-role="flipswitch">
+                        <option value="off">No</option>
+                        <option value="on">Si</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>  
+    </div>
+
+
+
+
+    <script type="text/javascript">
+        var marcador;
+        var gMapa;
+        var divMapa = document.getElementById('mapa');
+        var vendedor_id = 1;
+        var markers = [];
+        var territorio=[];
+        var zona;
+        var mimarca;
+       
+
+
+        function validar_usuario(posiciones) {
+
+            if (vendedor_id === 1) {
+                ubicar_mi_referencia(posiciones.coords.latitude,
+                        posiciones.coords.longitude, vendedor_id);
+            }
+            else {
+                alert("Error en el logeo de usuario");
+            }
+
+        }
+
+
+        function ubicar_mi_referencia(lat, lon, vendedor_id) {
+
+            var gLatLon = new google.maps.LatLng(lat, lon);
+            var objConfig = {
+                zoom: 11,
+                center: gLatLon,
+                animation: google.maps.Animation.DROP,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            gMapa = new google.maps.Map(divMapa, objConfig);
+            gMapa.setCenter(new google.maps.LatLng(lat, lon));
+
+             mimarca = new google.maps.Marker({
+                position: new google.maps.LatLng(lat, lon),
+                map: gMapa,
+                icon: 'img/vendedor.png'
+            });
+            var infowindow = new google.maps.InfoWindow({
+                content: "<b><font size=1>AQUÍ ESTAS TÚ</font></b>"
+            });
+            mimarca.addListener('click', function() {
+                if (mimarca.getAnimation() !== null) {
+                    mimarca.setAnimation(null);
+                } else {
+                    infowindow.open(gMapa, mimarca);
+                    mimarca.setAnimation(google.maps.Animation.BOUNCE);
+                }
+            });
+
+            setInterval(function() {
+
+                $.post("http://localhost/CorralesMonitoreo/envioCoordenadas.php", {vendedor: vendedor_id, latitud: lat, longitud: lon}, function(resp) {
+                });
+
+            }, 30000);
+
+        }
+
+
+
+
+        function ubicar_clientes(vendedor_id) {
+            var infowindows = [];
+
+            var params = {vendedorId: vendedor_id};
+            $.get("http://localhost/CorralesMonitoreo/datosClientes.php", params, function(data) {
+
+                $(data).each(function( i,data) {
+                  
+                    
+                infowindows[i] = new google.maps.InfoWindow({
+                    content: "<b><font size=1>" + data.RazonSocial + "</font></b>" + "<p></p>" + "<font size=1>" + data.Direccion + "</font>"
+                });
+                markers[i] = new google.maps.Marker({
+                    position: new google.maps.LatLng(data.Latitud,data.Longitud ),
+                    map: gMapa,
+                    animation: google.maps.Animation.DROP,
+                    icon: 'img/gente_opt.png'
+
+
+                });
+                google.maps.event.addListener(markers[i], 'click', function(i) {
+
+                    return function() {
+                        if (markers[i].getAnimation() !== null) {
+                            markers[i].setAnimation(null);
+                        } else {
+                            markers[i].setAnimation(google.maps.Animation.BOUNCE);
+                            infowindows[i].open(gMapa, markers[i]);
+                        }
+
+                    };
+                }(i));
+      
+                });
+            });
+
+        }
+
+       
+       
+       
+       
+        function colorear_territorio(vendedorId) {
+             
+
+            var params = {vendedorId: vendedorId};
+            $.get("http://localhost/CorralesMonitoreo/datosTerritorio.php", params, function(data) {
+
+                $(data).each(function( i,data) {
+                  
+                   
+                 territorio[i]= new google.maps.LatLng(data.Latitud, data.Longitud);
+      
+                });
+                
+                
+                  zona = new google.maps.Polygon({
+                paths: territorio,
+                strokeColor: "#000000",
+                strokeOpacity: 0.2,
+                strokeWeight: 1,
+                fillColor: "#220000",
+                fillOpacity: 0.20
+            });
+
+            zona.setMap(gMapa);          
+            });
+    
+        }
+
+
+        function eliminaMarcadores()
+        {
+            for (a = 0; a < markers.length; a++)
+            {
+                markers[a].setMap(null);
+            }
+            markers = [];
+        }
+
+
+        $("#clientes").on("change", function() {
+            if ($(this).val() === "off")
+            {
+                eliminaMarcadores();
+            }
+            else
+            {
+                ubicar_clientes(vendedor_id);
+            }
+        });
+        
+
+        $("#territorio").on("change", function() {
+            if ($(this).val() === "off")
+            {
+                zona.setMap(null);
+            }
+            else
+            {
+                colorear_territorio(vendedor_id);
+               console.log(zona.containsLatLng(mimarca));
+            }
+        });
+        
+    </script>
+    </body>
+</html>
